@@ -18,24 +18,23 @@ export default function RoleSelect() {
         setLoading(true)
         setError(null)
 
-        // Fetch admin PIN from profiles
-        const { data, error: fetchErr } = await supabase
-            .from('profiles')
-            .select('admin_pin')
-            .eq('user_id', session.user.id)
-            .single()
+    // Fetch admin PIN from profiles
+    const { data: isValid, error: fetchErr } = await supabase.rpc('verify_admin_pin', {
+        input_user_id: session.user.id,
+        input_pin: pin.trim()
+    })
 
-        if (fetchErr || !data) {
-            setError('Profile not found. Please sign up again.')
-            setLoading(false)
-            return
-        }
+    if (fetchErr) {
+        setError('Could not verify PIN. Please try again.')
+        setLoading(false)
+        return
+    }
 
-        if (data.admin_pin !== pin.trim()) {
-            setError('Incorrect admin PIN.')
-            setLoading(false)
-            return
-        }
+    if (!isValid) {
+        setError('Incorrect admin PIN.')
+        setLoading(false)
+        return
+    }
 
         setRole('admin')
     }

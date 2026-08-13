@@ -24,13 +24,15 @@ export default function Login() {
       const { data, error: signUpErr } = await supabase.auth.signUp({ email, password })
       if (signUpErr) {
         setError(signUpErr.message)
-      } else {
-        // Store admin PIN in profiles table
-        const { error: profileErr } = await supabase
-          .from('profiles')
-          .upsert({ user_id: data.user.id, admin_pin: adminPin.trim() })
-        if (profileErr) {
-          setError('Account created but failed to save admin PIN: ' + profileErr.message)
+      }
+      else
+      {
+          const { error: pinErr } = await supabase.rpc('create_profile_and_set_pin', {
+          input_user_id: data.user.id,
+          input_pin: adminPin.trim()
+        })
+        if (pinErr) {
+          setError('Account created but failed to save admin PIN: ' + pinErr.message)
         } else {
           setSuccess('Account created. You can now sign in.')
           setIsSignUp(false)
